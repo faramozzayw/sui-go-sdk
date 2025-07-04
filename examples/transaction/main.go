@@ -78,8 +78,8 @@ func SuiDevInspectTransactionBlock() {
 		ReturnValues [2]interface{}
 	}
 	rsp, err := cli.SuiDevInspectTransactionBlock(ctx, models.SuiDevInspectTransactionBlockRequest{
-		Sender:   "0x4ae8be62692d1bbf892b657ee78a59954240ee0525f20a5b5687a70995cf0eff",
-		TxBytes:  "AAUBAFIMicbHjFZu7Q6/JPhUqMItj90GpvFq0B8Qja1/G6rqFSjPCgAAAAAgU+6E0DJf97dwaRV0MdseKxCPU97monpYtyfJSa7jKQAACKCGAQAAAAAAAAiAlpgAAAAAAAABAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYtKc8KAAAAACBhjSVWnhYSnxbZuJWgDlXi2j3pp7gqJJizx29rU/Ly+QEAy/R0ipZdRp6jo2zwzMV0O5bC0K5t7gdi7T7KZfrAf34EcG9vbBBnZXRfbGV2ZWwyX3JhbmdlAgcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgNzdWkDU1VJAAf3FSwFkwSAzXQNcxG1uLRcb0iOOlOhHD90pvrDalLg1wZEQlVTREMGREJVU0RDAAUBAAABAQABAgABAwABBAA=",
+		Sender:  "0x4ae8be62692d1bbf892b657ee78a59954240ee0525f20a5b5687a70995cf0eff",
+		TxBytes: "AAUBAFIMicbHjFZu7Q6/JPhUqMItj90GpvFq0B8Qja1/G6rqFSjPCgAAAAAgU+6E0DJf97dwaRV0MdseKxCPU97monpYtyfJSa7jKQAACKCGAQAAAAAAAAiAlpgAAAAAAAABAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYtKc8KAAAAACBhjSVWnhYSnxbZuJWgDlXi2j3pp7gqJJizx29rU/Ly+QEAy/R0ipZdRp6jo2zwzMV0O5bC0K5t7gdi7T7KZfrAf34EcG9vbBBnZXRfbGV2ZWwyX3JhbmdlAgcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgNzdWkDU1VJAAf3FSwFkwSAzXQNcxG1uLRcb0iOOlOhHD90pvrDalLg1wZEQlVTREMGREJVU0RDAAUBAAABAQABAgABAwABBAA=",
 	})
 
 	if err != nil {
@@ -104,10 +104,10 @@ func SignAndExecuteTransactionBlock() {
 		return
 	}
 	priKey := signerAccount.PriKey
-	fmt.Printf("signerAccount.Address: %s\n", signerAccount.Address)
+	fmt.Printf("signerAccount.SuiAddress: %s\n", signerAccount.SuiAddress)
 
 	rsp, err := cli.TransferSui(ctx, models.TransferSuiRequest{
-		Signer:      signerAccount.Address,
+		Signer:      signerAccount.Address(),
 		SuiObjectId: "0xc699c6014da947778fe5f740b2e9caf905ca31fb4c81e346f467ae126e3c03f1",
 		GasBudget:   "100000000",
 		Recipient:   "0x4ae8be62692d1bbf892b657ee78a59954240ee0525f20a5b5687a70995cf0eff",

@@ -22,7 +22,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(signerAccount.Address)
+	fmt.Println(signerAccount.SuiAddress)
 
 	// simpleTransaction(ctx, client, signerAccount)
 	// moveCallTransaction(ctx, client, signerAccount)
@@ -50,11 +50,11 @@ func simpleTransaction(ctx context.Context, suiClient *sui.Client, signer *signe
 
 	tx.SetSuiClient(suiClient).
 		SetSigner(signer).
-		SetSender(models.SuiAddress(signer.Address)).
+		SetSender(models.SuiAddress(signer.Address())).
 		SetGasPrice(1000).
 		SetGasBudget(50000000).
 		SetGasPayment([]transaction.SuiObjectRef{*gasCoin}).
-		SetGasOwner(models.SuiAddress(signer.Address))
+		SetGasOwner(models.SuiAddress(signer.Address()))
 
 	splitCoin := tx.SplitCoins(tx.Gas(), []transaction.Argument{
 		tx.Pure(uint64(1000000000 * 0.01)),
@@ -98,11 +98,11 @@ func moveCallTransaction(ctx context.Context, suiClient *sui.Client, signer *sig
 
 	tx.SetSuiClient(suiClient).
 		SetSigner(signer).
-		SetSender(models.SuiAddress(signer.Address)).
+		SetSender(models.SuiAddress(signer.Address())).
 		SetGasPrice(1000).
 		SetGasBudget(50000000).
 		SetGasPayment([]transaction.SuiObjectRef{*gasCoin}).
-		SetGasOwner(models.SuiAddress(signer.Address))
+		SetGasOwner(models.SuiAddress(signer.Address()))
 
 	addressBytes, err := transaction.ConvertSuiAddressStringToBytes("0x0000000000000000000000000000000000000000000000000000000000000002")
 	if err != nil {
@@ -150,7 +150,7 @@ func sponsoredTransaction(ctx context.Context, suiClient *sui.Client, rawSigner 
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Sponsored: ", sponsoredSigner.Address)
+	fmt.Println("Sponsored: ", sponsoredSigner.SuiAddress)
 
 	receiver := ""
 	transferCoinObjectId := ""
@@ -206,11 +206,11 @@ func sponsoredTransaction(ctx context.Context, suiClient *sui.Client, rawSigner 
 
 	newTx.SetSigner(rawSigner).
 		SetSponsoredSigner(sponsoredSigner).
-		SetSender(models.SuiAddress(rawSigner.Address)).
+		SetSender(models.SuiAddress(rawSigner.Address())).
 		SetGasPrice(1000).
 		SetGasBudget(50000000).
 		SetGasPayment([]transaction.SuiObjectRef{*gasCoin}).
-		SetGasOwner(models.SuiAddress(sponsoredSigner.Address))
+		SetGasOwner(models.SuiAddress(sponsoredSigner.Address()))
 
 	resp, err := newTx.Execute(
 		ctx,

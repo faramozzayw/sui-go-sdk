@@ -125,7 +125,7 @@ func (txn *TxnMetaData) SignSerializedSigWith(privateKey ed25519.PrivateKey) *Si
 	}
 	return &SignedTransactionSerializedSig{
 		TxBytes:   txn.TxBytes,
-		Signature: ToSerializedSignature(sigBytes, privateKey.Public().(ed25519.PublicKey)),
+		Signature: ToSerializedSignature(sigBytes, privateKey.Public().(ed25519.PublicKey), byte(SigFlagEd25519)),
 	}
 }
 
@@ -137,11 +137,11 @@ func messageWithIntent(message []byte) []byte {
 	return intentMessage
 }
 
-func ToSerializedSignature(signature, pubKey []byte) string {
+func ToSerializedSignature(signature, pubKey []byte, sigFlag byte) string {
 	signatureLen := len(signature)
 	pubKeyLen := len(pubKey)
 	serializedSignature := make([]byte, 1+signatureLen+pubKeyLen)
-	serializedSignature[0] = byte(SigFlagEd25519)
+	serializedSignature[0] = byte(sigFlag)
 	copy(serializedSignature[1:], signature)
 	copy(serializedSignature[1+signatureLen:], pubKey)
 	return base64.StdEncoding.EncodeToString(serializedSignature)
@@ -207,14 +207,10 @@ func VerifyMessage(message, signature string, scope constant.IntentScope) (signe
 	if err != nil {
 		return "", false, err
 	}
+
 	digest := blake2b.Sum256(messageBytes)
-
 	pass = ed25519.Verify(serializedSignature.PubKey[:], digest[:], serializedSignature.Signature)
-
 	signer = Ed25519PublicKeyToSuiAddress(serializedSignature.PubKey)
-	if err != nil {
-		return "", false, fmt.Errorf("invalid signer %v", err)
-	}
 
 	return
 }

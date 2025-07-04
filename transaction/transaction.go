@@ -18,8 +18,8 @@ import (
 
 type Transaction struct {
 	Data            TransactionData
-	Signer          *signer.Signer
-	SponsoredSigner *signer.Signer
+	Signer          signer.Keypair
+	SponsoredSigner signer.Keypair
 	SuiClient       *sui.Client
 }
 
@@ -37,13 +37,13 @@ func NewTransaction() *Transaction {
 	}
 }
 
-func (tx *Transaction) SetSigner(signer *signer.Signer) *Transaction {
+func (tx *Transaction) SetSigner(signer signer.Keypair) *Transaction {
 	tx.Signer = signer
 
 	return tx
 }
 
-func (tx *Transaction) SetSponsoredSigner(signer *signer.Signer) *Transaction {
+func (tx *Transaction) SetSponsoredSigner(signer signer.Keypair) *Transaction {
 	tx.SponsoredSigner = signer
 
 	return tx
@@ -366,7 +366,7 @@ func (tx *Transaction) ToSuiExecuteTransactionBlockRequest(
 		return nil, ErrSignerNotSet
 	}
 
-	b64TxBytes, err := tx.buildTransaction(ctx)
+	b64TxBytes, err := tx.BuildTransaction(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -392,7 +392,7 @@ func (tx *Transaction) ToSuiExecuteTransactionBlockRequest(
 	}, nil
 }
 
-func (tx *Transaction) buildTransaction(ctx context.Context) (string, error) {
+func (tx *Transaction) BuildTransaction(ctx context.Context) (string, error) {
 	if tx.Signer == nil {
 		return "", ErrSignerNotSet
 	}
@@ -407,7 +407,7 @@ func (tx *Transaction) buildTransaction(ctx context.Context) (string, error) {
 		}
 	}
 	tx.SetGasBudgetIfNotSet(defaultGasBudget)
-	tx.SetSenderIfNotSet(models.SuiAddress(tx.Signer.Address))
+	tx.SetSenderIfNotSet(models.SuiAddress(tx.Signer.Address()))
 
 	return tx.build(false)
 }
@@ -426,7 +426,7 @@ func (tx *Transaction) build(onlyTransactionKind bool) (string, error) {
 		return "", ErrSenderNotSet
 	}
 	if tx.Data.V1.GasData.Owner == nil {
-		tx.SetGasOwner(models.SuiAddress(tx.Signer.Address))
+		tx.SetGasOwner(models.SuiAddress(tx.Signer.Address()))
 	}
 	if !tx.Data.V1.GasData.IsAllSet() {
 		return "", ErrGasDataNotAllSet

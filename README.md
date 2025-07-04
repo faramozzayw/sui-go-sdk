@@ -16,12 +16,12 @@ Powered by [SuiVision](https://suivision.xyz/) team.
 
 ### Features
 
-+ Support the mainstream methods in the Object, Coin, Event, Read Transaction Blocks, System Data, and Write Transaction
+- Support the mainstream methods in the Object, Coin, Event, Read Transaction Blocks, System Data, and Write Transaction
   Blocks modules.
-+ Customized request method `SuiCall`.
-+ Unsigned methods can be executed without loading your keystore file.
-+ Provide the method `SignAndExecuteTransactionBlock` to send signed transaction.
-+ Support subscriptions to events or transactions via websockets.
+- Customized request method `SuiCall`.
+- Unsigned methods can be executed without loading your keystore file.
+- Provide the method `SignAndExecuteTransactionBlock` to send signed transaction.
+- Support subscriptions to events or transactions via websockets.
 
 ## Quick Start
 
@@ -34,8 +34,8 @@ go get github.com/block-vision/sui-go-sdk
 ### Go Version
 
 | Golang Version |
-|----------------|
-| \>= 1.20       | 
+| -------------- |
+| \>= 1.20       |
 
 ## Examples
 
@@ -44,65 +44,66 @@ go get github.com/block-vision/sui-go-sdk
 You can use the NewSuiClient method and pass in the RPC URL as an argument to easily connect to the Sui network.
 BlockVision provides the following free and fast Sui network endpoints:
 
-+ MainNet: https://sui-mainnet-endpoint.blockvision.org
-+ TestNet: https://sui-testnet-endpoint.blockvision.org
+- MainNet: <https://sui-mainnet-endpoint.blockvision.org>
+- TestNet: <https://sui-testnet-endpoint.blockvision.org>
 
 ```go
 package main
 
 import (
-	"context"
-	"fmt"
+ "context"
+ "fmt"
 
-	"github.com/block-vision/sui-go-sdk/sui"
+ "github.com/block-vision/sui-go-sdk/sui"
 )
 
 func main() {
-	// configure your endpoint here or use BlockVision's free Sui RPC endpoint
-	cli := sui.NewSuiClient("https://sui-testnet-endpoint.blockvision.org")
+ // configure your endpoint here or use BlockVision's free Sui RPC endpoint
+ cli := sui.NewSuiClient("https://sui-testnet-endpoint.blockvision.org")
 }
 
 ```
+
 ### Getting coins from the faucet
+
 You can request sui from the faucet when running against devnet, testnet, or localnet
 
 ```go
 package main
 
 import (
-	"fmt"
-	"github.com/block-vision/sui-go-sdk/constant"
-	"github.com/block-vision/sui-go-sdk/sui"
+ "fmt"
+ "github.com/block-vision/sui-go-sdk/constant"
+ "github.com/block-vision/sui-go-sdk/sui"
 )
 
 func main() {
-	RequestDevNetSuiFromFaucet()
+ RequestDevNetSuiFromFaucet()
 }
 
 func RequestDevNetSuiFromFaucet() {
-	faucetHost, err := sui.GetFaucetHost(constant.SuiDevnet)
-	if err != nil {
-		fmt.Println("GetFaucetHost err:", err)
-		return
-	}
+ faucetHost, err := sui.GetFaucetHost(constant.SuiDevnet)
+ if err != nil {
+  fmt.Println("GetFaucetHost err:", err)
+  return
+ }
 
-	fmt.Println("faucetHost:", faucetHost)
+ fmt.Println("faucetHost:", faucetHost)
 
-	recipient := "0xaf9f4d20c205f26051a7e1758601c4c47a9f99df3f9823f70926c17c80882d36"
+ recipient := "0xaf9f4d20c205f26051a7e1758601c4c47a9f99df3f9823f70926c17c80882d36"
 
-	header := map[string]string{}
-	err = sui.RequestSuiFromFaucet(faucetHost, recipient, header)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+ header := map[string]string{}
+ err = sui.RequestSuiFromFaucet(faucetHost, recipient, header)
+ if err != nil {
+  fmt.Println(err.Error())
+  return
+ }
 
-	// the successful transaction block url: https://suiexplorer.com/txblock/91moaxbXsQnJYScLP2LpbMXV43ZfngS2xnRgj1CT7jLQ?network=devnet
-	fmt.Println("Request DevNet Sui From Faucet success")
+ // the successful transaction block url: https://suiexplorer.com/txblock/91moaxbXsQnJYScLP2LpbMXV43ZfngS2xnRgj1CT7jLQ?network=devnet
+ fmt.Println("Request DevNet Sui From Faucet success")
 }
 
 ```
-
 
 ### Writing Transaction Blocks to Sui
 
@@ -133,12 +134,12 @@ func main() {
   }
 
   priKey := signerAccount.PriKey
-  fmt.Printf("signerAccount.Address: %s\n", signerAccount.Address)
+  fmt.Printf("signerAccount.Address(): %s\n", signerAccount.Address())
 
   gasObj := "0xc699c6014da947778fe5f740b2e9caf905ca31fb4c81e346f467ae126e3c03f1"
 
   rsp, err := cli.TransferObject(ctx, models.TransferObjectRequest{
-    Signer:    signerAccount.Address,
+    Signer:    signerAccount.Address(),
     ObjectId:  "0x99b51302b66bd65b070cdb549b86e4b9aa7370cfddc70211c2b5a478140c7999",
     Gas:       &gasObj,
     GasBudget: "100000000",
@@ -179,61 +180,61 @@ func main() {
 package main
 
 import (
-	"context"
-	"fmt"
-	"github.com/block-vision/sui-go-sdk/constant"
-	"github.com/block-vision/sui-go-sdk/models"
-	"github.com/block-vision/sui-go-sdk/signer"
-	"github.com/block-vision/sui-go-sdk/sui"
-	"github.com/block-vision/sui-go-sdk/utils"
+ "context"
+ "fmt"
+ "github.com/block-vision/sui-go-sdk/constant"
+ "github.com/block-vision/sui-go-sdk/models"
+ "github.com/block-vision/sui-go-sdk/signer"
+ "github.com/block-vision/sui-go-sdk/sui"
+ "github.com/block-vision/sui-go-sdk/utils"
 )
 
 func main() {
-	var ctx = context.Background()
-	var cli = sui.NewSuiClient(constant.BvTestnetEndpoint)
+ var ctx = context.Background()
+ var cli = sui.NewSuiClient(constant.BvTestnetEndpoint)
 
-	signerAccount, err := signer.NewSignertWithMnemonic("input your mnemonic")
+ signerAccount, err := signer.NewSignertWithMnemonic("input your mnemonic")
 
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+ if err != nil {
+  fmt.Println(err.Error())
+  return
+ }
 
-	priKey := signerAccount.PriKey
-	fmt.Printf("signerAccount.Address: %s\n", signerAccount.Address)
+ priKey := signerAccount.PriKey
+ fmt.Printf("signerAccount.Address(): %s\n", signerAccount.Address())
 
-	rsp, err := cli.TransferSui(ctx, models.TransferSuiRequest{
-		Signer:      signerAccount.Address,
-		SuiObjectId: "0xc699c6014da947778fe5f740b2e9caf905ca31fb4c81e346f467ae126e3c03f1",
-		GasBudget:   "100000000",
-		Recipient:   "0xb7f98d327f19f674347e1e40641408253142d6e7e5093a7c96eda8cdfd7d9bb5",
-		Amount:      "1",
-	})
+ rsp, err := cli.TransferSui(ctx, models.TransferSuiRequest{
+  Signer:      signerAccount.Address(),
+  SuiObjectId: "0xc699c6014da947778fe5f740b2e9caf905ca31fb4c81e346f467ae126e3c03f1",
+  GasBudget:   "100000000",
+  Recipient:   "0xb7f98d327f19f674347e1e40641408253142d6e7e5093a7c96eda8cdfd7d9bb5",
+  Amount:      "1",
+ })
 
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+ if err != nil {
+  fmt.Println(err.Error())
+  return
+ }
 
-	// see the successful transaction url: https://explorer.sui.io/txblock/C7iYsH4tU5RdY1KBeNax4mCBn3XLZ5UswsuDpKrVkcH6?network=testnet
-	rsp2, err := cli.SignAndExecuteTransactionBlock(ctx, models.SignAndExecuteTransactionBlockRequest{
-		TxnMetaData: rsp,
-		PriKey:      priKey,
+ // see the successful transaction url: https://explorer.sui.io/txblock/C7iYsH4tU5RdY1KBeNax4mCBn3XLZ5UswsuDpKrVkcH6?network=testnet
+ rsp2, err := cli.SignAndExecuteTransactionBlock(ctx, models.SignAndExecuteTransactionBlockRequest{
+  TxnMetaData: rsp,
+  PriKey:      priKey,
       // only fetch the effects field
-		Options: models.SuiTransactionBlockOptions{
-			ShowInput:    true,
-			ShowRawInput: true,
-			ShowEffects:  true,
-		},
-		RequestType: "WaitForLocalExecution",
-	})
+  Options: models.SuiTransactionBlockOptions{
+   ShowInput:    true,
+   ShowRawInput: true,
+   ShowEffects:  true,
+  },
+  RequestType: "WaitForLocalExecution",
+ })
 
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+ if err != nil {
+  fmt.Println(err.Error())
+  return
+ }
 
-	utils.PrettyPrint(rsp2)
+ utils.PrettyPrint(rsp2)
 }
 
 ```
@@ -245,72 +246,72 @@ func main() {
 package main
 
 import (
-	"context"
-	"fmt"
-	"github.com/block-vision/sui-go-sdk/constant"
-	"github.com/block-vision/sui-go-sdk/models"
-	"github.com/block-vision/sui-go-sdk/signer"
-	"github.com/block-vision/sui-go-sdk/sui"
-	"github.com/block-vision/sui-go-sdk/utils"
+ "context"
+ "fmt"
+ "github.com/block-vision/sui-go-sdk/constant"
+ "github.com/block-vision/sui-go-sdk/models"
+ "github.com/block-vision/sui-go-sdk/signer"
+ "github.com/block-vision/sui-go-sdk/sui"
+ "github.com/block-vision/sui-go-sdk/utils"
 )
 
 func main() {
-	var ctx = context.Background()
-	var cli = sui.NewSuiClient(constant.BvTestnetEndpoint)
+ var ctx = context.Background()
+ var cli = sui.NewSuiClient(constant.BvTestnetEndpoint)
 
-	signerAccount, err := signer.NewSignertWithMnemonic("input your mnemonic")
+ signerAccount, err := signer.NewSignertWithMnemonic("input your mnemonic")
 
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+ if err != nil {
+  fmt.Println(err.Error())
+  return
+ }
 
-	priKey := signerAccount.PriKey
-	fmt.Printf("signerAccount.Address: %s\n", signerAccount.Address)
+ priKey := signerAccount.PriKey
+ fmt.Printf("signerAccount.Address(): %s\n", signerAccount.Address)
 
   gasObj := "0x58c103930dc52c0ab86319d99218e301596fda6fd80c4efafd7f4c9df1d0b6d0"
 
-	rsp, err := cli.MoveCall(ctx, models.MoveCallRequest{
-		Signer:          signerAccount.Address,
-		PackageObjectId: "0x7d584c9a27ca4a546e8203b005b0e9ae746c9bec6c8c3c0bc84611bcf4ceab5f",
-		Module:          "auction",
-		Function:        "start_an_auction",
-		TypeArguments:   []interface{}{},
-		Arguments: []interface{}{
-			"0x342e959f8d9d1fa9327a05fd54fefd929bbedad47190bdbb58743d8ba3bd3420",
-			"0x3fd0fdedb84cf1f59386b6251ba6dd2cb495094da26e0a5a38239acd9d437f96",
-			"0xb3de4235cb04167b473de806d00ba351e5860500253cf8e62d711e578e1d92ae",
-			"BlockVision",
-			"0xc699c6014da947778fe5f740b2e9caf905ca31fb4c81e346f467ae126e3c03f1",
-		},
-		Gas:       &gasObj,
-		GasBudget: "100000000",
-	})
+ rsp, err := cli.MoveCall(ctx, models.MoveCallRequest{
+  Signer:          signerAccount.Address(),
+  PackageObjectId: "0x7d584c9a27ca4a546e8203b005b0e9ae746c9bec6c8c3c0bc84611bcf4ceab5f",
+  Module:          "auction",
+  Function:        "start_an_auction",
+  TypeArguments:   []interface{}{},
+  Arguments: []interface{}{
+   "0x342e959f8d9d1fa9327a05fd54fefd929bbedad47190bdbb58743d8ba3bd3420",
+   "0x3fd0fdedb84cf1f59386b6251ba6dd2cb495094da26e0a5a38239acd9d437f96",
+   "0xb3de4235cb04167b473de806d00ba351e5860500253cf8e62d711e578e1d92ae",
+   "BlockVision",
+   "0xc699c6014da947778fe5f740b2e9caf905ca31fb4c81e346f467ae126e3c03f1",
+  },
+  Gas:       &gasObj,
+  GasBudget: "100000000",
+ })
 
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+ if err != nil {
+  fmt.Println(err.Error())
+  return
+ }
 
-	// see the successful transaction url: https://explorer.sui.io/txblock/CD5hFB4bWFThhb6FtvKq3xAxRri72vsYLJAVd7p9t2sR?network=testnet
-	rsp2, err := cli.SignAndExecuteTransactionBlock(ctx, models.SignAndExecuteTransactionBlockRequest{
-		TxnMetaData: rsp,
-		PriKey:      priKey,
+ // see the successful transaction url: https://explorer.sui.io/txblock/CD5hFB4bWFThhb6FtvKq3xAxRri72vsYLJAVd7p9t2sR?network=testnet
+ rsp2, err := cli.SignAndExecuteTransactionBlock(ctx, models.SignAndExecuteTransactionBlockRequest{
+  TxnMetaData: rsp,
+  PriKey:      priKey,
       // only fetch the effects field
-		Options: models.SuiTransactionBlockOptions{
-			ShowInput:    true,
-			ShowRawInput: true,
-			ShowEffects:  true,
-		},
-		RequestType: "WaitForLocalExecution",
-	})
+  Options: models.SuiTransactionBlockOptions{
+   ShowInput:    true,
+   ShowRawInput: true,
+   ShowEffects:  true,
+  },
+  RequestType: "WaitForLocalExecution",
+ })
 
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+ if err != nil {
+  fmt.Println(err.Error())
+  return
+ }
 
-	utils.PrettyPrint(rsp2)
+ utils.PrettyPrint(rsp2)
 }
 
 ```
@@ -343,12 +344,12 @@ func main() {
   }
 
   priKey := signerAccount.PriKey
-  fmt.Printf("signerAccount.Address: %s\n", signerAccount.Address)
+  fmt.Printf("signerAccount.Address(): %s\n", signerAccount.suiaddress)
 
   gasObj := "0xc699c6014da947778fe5f740b2e9caf905ca31fb4c81e346f467ae126e3c03f1"
 
   rsp, err := cli.MergeCoins(ctx, models.MergeCoinsRequest{
-    Signer:      signerAccount.Address,
+    Signer:      signerAccount.Address(),
     PrimaryCoin: "0x180fe0c159644fe4b376e4488498e524b2a564919775cb2719734a4699ae7b28",
     CoinToMerge: "0x3b4644f82b4dc339c17ed5f786f4050e1f765b38e9297ffdacdfc5ead482669f",
     Gas:         &gasObj,
@@ -395,39 +396,39 @@ Fetch all balance owned by the address `0xb7f98d327f19f674347e1e40641408253142d6
 package main
 
 import (
-	"context"
-	"fmt"
+ "context"
+ "fmt"
 
-	"github.com/block-vision/sui-go-sdk/constant"
-	"github.com/block-vision/sui-go-sdk/models"
-	"github.com/block-vision/sui-go-sdk/sui"
-	"github.com/block-vision/sui-go-sdk/utils"
+ "github.com/block-vision/sui-go-sdk/constant"
+ "github.com/block-vision/sui-go-sdk/models"
+ "github.com/block-vision/sui-go-sdk/sui"
+ "github.com/block-vision/sui-go-sdk/utils"
 )
 
 func main() {
-	var ctx = context.Background()
-	var cli = sui.NewSuiClient(constant.BvTestnetEndpoint)
+ var ctx = context.Background()
+ var cli = sui.NewSuiClient(constant.BvTestnetEndpoint)
 
-	rsp, err := cli.SuiXGetAllBalance(ctx, models.SuiXGetAllBalanceRequest{
-		Owner: "0xb7f98d327f19f674347e1e40641408253142d6e7e5093a7c96eda8cdfd7d9bb5",
-	})
+ rsp, err := cli.SuiXGetAllBalance(ctx, models.SuiXGetAllBalanceRequest{
+  Owner: "0xb7f98d327f19f674347e1e40641408253142d6e7e5093a7c96eda8cdfd7d9bb5",
+ })
 
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+ if err != nil {
+  fmt.Println(err.Error())
+  return
+ }
 
-	utils.PrettyPrint(rsp)
+ utils.PrettyPrint(rsp)
 
-	// If you want to request for original json response data, you can use SuiCall().
-	callRsp, err := cli.SuiCall(ctx, "suix_getAllBalances", "0xb7f98d327f19f674347e1e40641408253142d6e7e5093a7c96eda8cdfd7d9bb5")
+ // If you want to request for original json response data, you can use SuiCall().
+ callRsp, err := cli.SuiCall(ctx, "suix_getAllBalances", "0xb7f98d327f19f674347e1e40641408253142d6e7e5093a7c96eda8cdfd7d9bb5")
 
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+ if err != nil {
+  fmt.Println(err.Error())
+  return
+ }
 
-	utils.PrettyPrint(callRsp)
+ utils.PrettyPrint(callRsp)
 }
 
 ```
@@ -440,29 +441,29 @@ Fetch coin metadata by the CoinType `0xf7a0b8cc24808220226301e102dae27464ea46e0d
 package main
 
 import (
-	"context"
-	"fmt"
+ "context"
+ "fmt"
 
-	"github.com/block-vision/sui-go-sdk/constant"
-	"github.com/block-vision/sui-go-sdk/models"
-	"github.com/block-vision/sui-go-sdk/sui"
-	"github.com/block-vision/sui-go-sdk/utils"
+ "github.com/block-vision/sui-go-sdk/constant"
+ "github.com/block-vision/sui-go-sdk/models"
+ "github.com/block-vision/sui-go-sdk/sui"
+ "github.com/block-vision/sui-go-sdk/utils"
 )
 
 func main() {
-	var ctx = context.Background()
-	var cli = sui.NewSuiClient(constant.BvTestnetEndpoint)
+ var ctx = context.Background()
+ var cli = sui.NewSuiClient(constant.BvTestnetEndpoint)
 
-	rsp, err := cli.SuiXGetCoinMetadata(ctx, models.SuiXGetCoinMetadataRequest{
-		CoinType: "0xf7a0b8cc24808220226301e102dae27464ea46e0d74bb968828318b9e3a921fa::busd::BUSD",
-	})
+ rsp, err := cli.SuiXGetCoinMetadata(ctx, models.SuiXGetCoinMetadataRequest{
+  CoinType: "0xf7a0b8cc24808220226301e102dae27464ea46e0d74bb968828318b9e3a921fa::busd::BUSD",
+ })
 
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+ if err != nil {
+  fmt.Println(err.Error())
+  return
+ }
 
-	utils.PrettyPrint(rsp)
+ utils.PrettyPrint(rsp)
 }
 
 ```
@@ -517,7 +518,6 @@ func main() {
 #### Get Object
 
 Fetch object details for the object with id `0xeeb964d1e640219c8ddb791cc8548f3242a3392b143ff47484a3753291cad898`.
-
 
 ```go
 package main
@@ -754,7 +754,7 @@ func main() {
 
   // receiveMsgCh is a channel to receive Sui event
   receiveMsgCh := make(chan models.SuiEventResponse, 10)
-  
+
   // SubscribeEvent implements the method `suix_subscribeEvent`, subscribe to a stream of Sui event.
   err := cli.SubscribeEvent(ctx, models.SuiXSubscribeEventsRequest{
     SuiEventFilter: map[string]interface{}{
@@ -767,7 +767,7 @@ func main() {
 
   for {
     select {
-	// receive Sui event
+ // receive Sui event
     case msg := <-receiveMsgCh:
       utils.PrettyPrint(msg)
     case <-ctx.Done():
@@ -828,23 +828,20 @@ func main() {
 ```
 
 ## API Documentation
+
 The Go Client SDK API documentation is currently available at [pkg.go.dev](https://pkg.go.dev/github.com/block-vision/sui-go-sdk).
 
 ## Contribution
 
-+ We welcome your suggestions, comments (including criticisms) and contributions.
-+ Please follow the PR/issue template provided to ensure that your contributions are clear and easy to understand.
-+ Thank you to all the people who participate in building better infrastructure!
+- We welcome your suggestions, comments (including criticisms) and contributions.
+- Please follow the PR/issue template provided to ensure that your contributions are clear and easy to understand.
+- Thank you to all the people who participate in building better infrastructure!
 
 ## Resources
 
-+ [SDK Examples](https://github.com/block-vision/sui-go-sdk/tree/main/examples)
-+ [Sui](https://github.com/MystenLabs/sui)
+- [SDK Examples](https://github.com/block-vision/sui-go-sdk/tree/main/examples)
+- [Sui](https://github.com/MystenLabs/sui)
 
 ## License
 
 [Apache 2.0 license](LICENSE)
-
-
-
-

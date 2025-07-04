@@ -23,10 +23,12 @@ const (
 	DerivationPathSecp256k1 = `m/54'/784'/0'/0/0`
 )
 
+const SigFlagEd25519 = 0x00
+
 type Signer struct {
-	PriKey  ed25519.PrivateKey
-	PubKey  ed25519.PublicKey
-	Address string
+	PriKey     ed25519.PrivateKey
+	PubKey     ed25519.PublicKey
+	SuiAddress string
 }
 
 func NewSigner(seed []byte) *Signer {
@@ -39,9 +41,9 @@ func NewSigner(seed []byte) *Signer {
 	addr := "0x" + hex.EncodeToString(addrBytes[:])[:AddressLength]
 
 	return &Signer{
-		PriKey:  priKey,
-		PubKey:  pubKey,
-		Address: addr,
+		PriKey:     priKey,
+		PubKey:     pubKey,
+		SuiAddress: addr,
 	}
 }
 
@@ -74,9 +76,17 @@ func (s *Signer) SignMessage(data string, scope constant.IntentScope) (*SignedMe
 
 	ret := &SignedMessageSerializedSig{
 		Message:   data,
-		Signature: models.ToSerializedSignature(sigBytes, s.PriKey.Public().(ed25519.PublicKey)),
+		Signature: models.ToSerializedSignature(sigBytes, s.PriKey.Public().(ed25519.PublicKey), byte(SigFlagEd25519)),
 	}
 	return ret, nil
+}
+
+func (s *Signer) Address() string {
+	return s.SuiAddress
+}
+
+func (s *Signer) Schema() byte {
+	return byte(0x0)
 }
 
 func (s *Signer) SignTransaction(b64TxBytes string) (*models.SignedTransactionSerializedSig, error) {
@@ -119,7 +129,7 @@ func (s *Signer) SignMessageV1(data string, scope constant.IntentScope) (*Signed
 
 	ret := &SignedMessageSerializedSig{
 		Message:   data,
-		Signature: models.ToSerializedSignature(sigBytes, s.PriKey.Public().(ed25519.PublicKey)),
+		Signature: models.ToSerializedSignature(sigBytes, s.PriKey.Public().(ed25519.PublicKey), byte(SigFlagEd25519)),
 	}
 	return ret, nil
 }
