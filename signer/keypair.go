@@ -6,6 +6,8 @@ import (
 )
 
 type Keypair interface {
+	Sign(message []byte) ([]byte, error)
+
 	SignMessage(data string, scope constant.IntentScope) (*SignedMessageSerializedSig, error)
 	SignTransaction(b64TxBytes string) (*models.SignedTransactionSerializedSig, error)
 	SignPersonalMessage(message string) (*SignedMessageSerializedSig, error)
@@ -18,4 +20,5 @@ type Keypair interface {
 
 	Schema() byte
 	Address() string
+	PublicKeyBytes() []byte
 }

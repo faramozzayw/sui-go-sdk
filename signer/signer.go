@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto"
 	"crypto/ed25519"
+	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
 
@@ -24,6 +25,8 @@ const (
 )
 
 const SigFlagEd25519 = 0x00
+
+type Ed25519Signer Signer
 
 type Signer struct {
 	PriKey     ed25519.PrivateKey
@@ -64,6 +67,18 @@ type SignedMessageSerializedSig struct {
 	Signature string `json:"signature"`
 }
 
+func (s *Signer) Address() string {
+	return s.SuiAddress
+}
+
+func (s *Signer) Schema() byte {
+	return byte(0x0)
+}
+
+func (s *Signer) PublicKeyBytes() []byte {
+	return s.PubKey
+}
+
 func (s *Signer) SignMessage(data string, scope constant.IntentScope) (*SignedMessageSerializedSig, error) {
 	txBytes, _ := base64.StdEncoding.DecodeString(data)
 	message := models.NewMessageWithIntent(txBytes, scope)
@@ -81,12 +96,15 @@ func (s *Signer) SignMessage(data string, scope constant.IntentScope) (*SignedMe
 	return ret, nil
 }
 
-func (s *Signer) Address() string {
-	return s.SuiAddress
-}
+func (s *Signer) Sign(message []byte) ([]byte, error) {
+	digest := blake2b.Sum256(message)
+	var noHash crypto.Hash
+	sig, err := s.PriKey.Sign(rand.Reader, digest[:], noHash)
+	if err != nil {
+		return nil, err
+	}
 
-func (s *Signer) Schema() byte {
-	return byte(0x0)
+	return sig, nil
 }
 
 func (s *Signer) SignTransaction(b64TxBytes string) (*models.SignedTransactionSerializedSig, error) {
