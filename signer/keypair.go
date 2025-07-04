@@ -18,5 +18,4 @@ type Keypair interface {
 
 	Schema() byte
 	Address() string
-	PublicKeyBytes() []byte
 }
