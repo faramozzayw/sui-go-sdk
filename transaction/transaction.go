@@ -438,6 +438,22 @@ func (tx *Transaction) build(onlyTransactionKind bool) (string, error) {
 	return bcsBase64, nil
 }
 
+func ParseTransactionKind(bcsBase64 string) (*Transaction, error) {
+	bcsBytes, err := mystenbcs.FromBase64(bcsBase64)
+	if err != nil {
+		return nil, err
+	}
+	var txData TransactionKind
+	_, err = mystenbcs.Unmarshal(bcsBytes, &txData)
+	if err != nil {
+		return nil, err
+	}
+	tx := NewTransaction()
+	tx.Data.V1.Kind = &txData
+
+	return tx, nil
+}
+
 func (tx *Transaction) NewTransactionFromKind() (newTx *Transaction, err error) {
 	newTx = NewTransaction()
 	err = copier.CopyWithOption(&newTx.Data.V1.Kind, &tx.Data.V1.Kind, copier.Option{DeepCopy: true})
