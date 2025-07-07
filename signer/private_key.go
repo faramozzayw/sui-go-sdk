@@ -1,6 +1,7 @@
 package signer
 
 import (
+	"crypto/ed25519"
 	"errors"
 	"fmt"
 
@@ -57,4 +58,38 @@ func DecodeSuiPrivateKey(value string) (*ParsedSuiSecretKey, error) {
 		Schema:    schema,
 		SecretKey: secretKey,
 	}, nil
+}
+
+// SignerFromSuiSecret creates a SuiSigner instance from a Bech32-encoded Sui private key string.
+// It supports Ed25519, Secp256k1, and Secp256r1 key schemas.
+func SignerFromSuiSecret(encoded string) (Keypair, error) {
+	parsed, err := DecodeSuiPrivateKey(encoded)
+	if err != nil {
+		return nil, err
+	}
+
+	switch string(parsed.Schema) {
+	case "ED25519":
+		if len(parsed.SecretKey) != ed25519.SeedSize {
+			return nil, fmt.Errorf("invalid ed25519 seed length")
+		}
+		s := NewSigner(parsed.SecretKey)
+		return s, nil
+
+	case "Secp256k1":
+		if len(parsed.SecretKey) != 32 {
+			return nil, fmt.Errorf("invalid secp256k1 private key length")
+		}
+		s := NewSecp256k1Signer(parsed.SecretKey)
+		return s, nil
+	case "Secp256r1":
+		if len(parsed.SecretKey) != 32 {
+			return nil, fmt.Errorf("invalid secp256r1 private key length")
+		}
+		s := NewSecp256r1Signer(parsed.SecretKey)
+		return s, nil
+
+	default:
+		return nil, fmt.Errorf("unsupported schema: %s", parsed.Schema)
+	}
 }

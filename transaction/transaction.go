@@ -3,6 +3,7 @@ package transaction
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"math"
 	"strconv"
 
@@ -400,6 +401,7 @@ func (tx *Transaction) BuildTransaction(ctx context.Context) (string, error) {
 	if tx.Data.V1.GasData.Price == nil {
 		if tx.SuiClient != nil {
 			rsp, err := tx.SuiClient.SuiXGetReferenceGasPrice(ctx)
+			fmt.Println("SuiXGetReferenceGasPrice", rsp)
 			if err != nil {
 				return "", err
 			}
@@ -414,12 +416,7 @@ func (tx *Transaction) BuildTransaction(ctx context.Context) (string, error) {
 
 func (tx *Transaction) build(onlyTransactionKind bool) (string, error) {
 	if onlyTransactionKind {
-		bcsEncodedMsg, err := tx.Data.V1.Kind.Marshal()
-		if err != nil {
-			return "", err
-		}
-		bcsBase64 := mystenbcs.ToBase64(bcsEncodedMsg)
-		return bcsBase64, nil
+		return tx.Data.V1.Kind.Build()
 	}
 
 	if tx.Data.V1.Sender == nil {

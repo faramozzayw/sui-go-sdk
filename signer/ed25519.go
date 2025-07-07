@@ -6,9 +6,7 @@ import (
 	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/base64"
-	"encoding/hex"
 
-	"github.com/block-vision/sui-go-sdk/common/keypair"
 	"github.com/block-vision/sui-go-sdk/constant"
 	"github.com/block-vision/sui-go-sdk/models"
 	"github.com/block-vision/sui-go-sdk/mystenbcs"
@@ -38,10 +36,7 @@ func NewSigner(seed []byte) *Signer {
 	priKey := ed25519.NewKeyFromSeed(seed[:])
 	pubKey := priKey.Public().(ed25519.PublicKey)
 
-	tmp := []byte{byte(keypair.Ed25519Flag)}
-	tmp = append(tmp, pubKey...)
-	addrBytes := blake2b.Sum256(tmp)
-	addr := "0x" + hex.EncodeToString(addrBytes[:])[:AddressLength]
+	addr := toSuiAddress(pubKey, byte(SigFlagEd25519))
 
 	return &Signer{
 		PriKey:     priKey,
@@ -55,16 +50,11 @@ func NewSignertWithMnemonic(mnemonic string) (*Signer, error) {
 	if err != nil {
 		return nil, err
 	}
-	key, err := DeriveForPath("m/44'/784'/0'/0'/0'", seed)
+	key, err := DeriveForPath(DerivationPathEd25519, seed)
 	if err != nil {
 		return nil, err
 	}
 	return NewSigner(key.Key), nil
-}
-
-type SignedMessageSerializedSig struct {
-	Message   string `json:"message"`
-	Signature string `json:"signature"`
 }
 
 func (s *Signer) Address() string {
@@ -72,11 +62,22 @@ func (s *Signer) Address() string {
 }
 
 func (s *Signer) Schema() byte {
-	return byte(0x0)
+	return byte(SigFlagEd25519)
 }
 
 func (s *Signer) PublicKeyBytes() []byte {
 	return s.PubKey
+}
+
+func (s *Signer) Sign(message []byte) ([]byte, error) {
+	digest := blake2b.Sum256(message)
+	var noHash crypto.Hash
+	sig, err := s.PriKey.Sign(rand.Reader, digest[:], noHash)
+	if err != nil {
+		return nil, err
+	}
+
+	return sig, nil
 }
 
 func (s *Signer) SignMessage(data string, scope constant.IntentScope) (*SignedMessageSerializedSig, error) {
@@ -94,17 +95,6 @@ func (s *Signer) SignMessage(data string, scope constant.IntentScope) (*SignedMe
 		Signature: models.ToSerializedSignature(sigBytes, s.PriKey.Public().(ed25519.PublicKey), byte(SigFlagEd25519)),
 	}
 	return ret, nil
-}
-
-func (s *Signer) Sign(message []byte) ([]byte, error) {
-	digest := blake2b.Sum256(message)
-	var noHash crypto.Hash
-	sig, err := s.PriKey.Sign(rand.Reader, digest[:], noHash)
-	if err != nil {
-		return nil, err
-	}
-
-	return sig, nil
 }
 
 func (s *Signer) SignTransaction(b64TxBytes string) (*models.SignedTransactionSerializedSig, error) {
