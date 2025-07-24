@@ -5,6 +5,7 @@ go 1.21
 toolchain go1.24.1
 
 require (
+	github.com/btcsuite/btcutil v1.0.2
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/fardream/go-bcs v0.7.0
 	github.com/go-playground/validator/v10 v10.12.0
