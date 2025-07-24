@@ -3,7 +3,6 @@ package transaction
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"math"
 	"strconv"
 
@@ -401,7 +400,6 @@ func (tx *Transaction) BuildTransaction(ctx context.Context) (string, error) {
 	if tx.Data.V1.GasData.Price == nil {
 		if tx.SuiClient != nil {
 			rsp, err := tx.SuiClient.SuiXGetReferenceGasPrice(ctx)
-			fmt.Println("SuiXGetReferenceGasPrice", rsp)
 			if err != nil {
 				return "", err
 			}
