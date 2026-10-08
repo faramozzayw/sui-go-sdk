@@ -4,6 +4,7 @@ import (
 	"crypto/elliptic"
 	"encoding/base64"
 	"encoding/hex"
+	"math/big"
 	"testing"
 
 	"github.com/block-vision/sui-go-sdk/constant"
@@ -22,7 +23,6 @@ var (
 var (
 	testEd25519Signature   = "2mRkjtvn7rYxIlRfNKXC0h0esH2HEAaihvpXFD2ReMUBghJjkTdi+bDL6/WT0reI3zEB2+IV+ywa+8xvqvzwAA=="
 	testSecp256k1Signature = "n14lks5/kqxifoeucE2t8TiPTUogbCGCCFOOT4INz068SQaY+eHc3vqNG/s3AjGZFDApbsqYvymkBUx7An4KAA=="
-	testSecp256r1Signature = "hhhBKSJP1JuC4DQP05WsTtGdcALQlll8BoBL2fsExjBh8qKyKjs9EqN5IXqBjtQpuv7V/eXBB6ytyG4TH7tjDA=="
 )
 
 var (
@@ -110,6 +110,43 @@ func TestKeypairSignaturesVerifyAcrossSchemes(t *testing.T) {
 	}
 }
 
+func TestSecp256r1SignaturesUseLowS(t *testing.T) {
+	keypair, err := signer.NewSecp256r1SignerFromSecretKey(append(make([]byte, 31), 1))
+	if err != nil {
+		t.Fatalf("NewSecp256r1SignerFromSecretKey() error = %v", err)
+	}
+
+	for i := 0; i < 8; i++ {
+		rawSignature, err := keypair.Sign([]byte("low-s test"))
+		if err != nil {
+			t.Fatalf("Sign() error = %v", err)
+		}
+		assertLowSecp256r1S(t, rawSignature)
+
+		signed, err := keypair.SignMessage(base64.StdEncoding.EncodeToString([]byte("low-s test")), constant.PersonalMessageIntentScope)
+		if err != nil {
+			t.Fatalf("SignMessage() error = %v", err)
+		}
+		parsed, err := models.FromSerializedSignature(signed.Signature)
+		if err != nil {
+			t.Fatalf("FromSerializedSignature() error = %v", err)
+		}
+		assertLowSecp256r1S(t, parsed.Signature)
+	}
+}
+
+func assertLowSecp256r1S(t *testing.T, signature []byte) {
+	t.Helper()
+	if len(signature) != 64 {
+		t.Fatalf("signature length = %d, want 64", len(signature))
+	}
+	s := new(big.Int).SetBytes(signature[32:])
+	halfOrder := new(big.Int).Rsh(elliptic.P256().Params().N, 1)
+	if s.Cmp(halfOrder) > 0 {
+		t.Fatal("signature has a high s value")
+	}
+}
+
 func TestSignerFromSuiSecret(t *testing.T) {
 	tests := []struct {
 		name           string
@@ -119,7 +156,10 @@ func TestSignerFromSuiSecret(t *testing.T) {
 	}{
 		{"Ed25519", testEd25519Key, testEd25519Signature, testEd25519Pubkey},
 		{"Secp256k1", testSecp256k1Key, testSecp256k1Signature, testSecp256k1Pubkey},
-		{"Secp256r1", testSecp256r1Key, testSecp256r1Signature, testSecp256r1Pubkey},
+		// P-256 signing uses an entropy source, so its signature bytes are not a
+		// stable fixture. Its serialization, verification, and low-s form are
+		// tested independently.
+		{"Secp256r1", testSecp256r1Key, "", testSecp256r1Pubkey},
 	}
 
 	for _, tt := range tests {
@@ -135,7 +175,9 @@ func TestSignerFromSuiSecret(t *testing.T) {
 			msg := []byte("test message")
 			sig, err := signer.Sign(msg)
 
-			assert.Equal(t, tt.expectedSig, base64.StdEncoding.EncodeToString(sig))
+			if tt.expectedSig != "" {
+				assert.Equal(t, tt.expectedSig, base64.StdEncoding.EncodeToString(sig))
+			}
 			assert.NoError(t, err)
 			assert.NotEmpty(t, sig)
 			assert.NotEmpty(t, pubKeyBytes)

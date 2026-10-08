@@ -65,6 +65,7 @@ func (s *Secp256r1Signer) Sign(message []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	ss = normalizeSecp256r1S(s.PrivateKey.Curve, ss)
 
 	rBytes := r.Bytes()
 	sBytes := ss.Bytes()
@@ -94,6 +95,7 @@ func (s *Secp256r1Signer) SignMessage(data string, scope constant.IntentScope) (
 	if err != nil {
 		return nil, err
 	}
+	ss = normalizeSecp256r1S(s.PrivateKey.Curve, ss)
 
 	rBytes := r.Bytes()
 	sBytes := ss.Bytes()
@@ -123,4 +125,12 @@ func (s *Secp256r1Signer) PublicKeyBytes() []byte {
 
 func (s *Secp256r1Signer) Schema() byte {
 	return byte(SigFlagSecp256r1)
+}
+
+func normalizeSecp256r1S(curve elliptic.Curve, s *big.Int) *big.Int {
+	halfOrder := new(big.Int).Rsh(curve.Params().N, 1)
+	if s.Cmp(halfOrder) > 0 {
+		return new(big.Int).Sub(curve.Params().N, s)
+	}
+	return s
 }
