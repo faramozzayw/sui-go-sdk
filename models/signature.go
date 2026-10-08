@@ -289,6 +289,11 @@ func verifyDigest(serializedSignature *SignaturePubkeyPair, digest []byte) (bool
 		if len(serializedSignature.Signature) != 64 {
 			return false, fmt.Errorf("invalid Secp256k1 signature length: %d", len(serializedSignature.Signature))
 		}
+		// Sui verifies Secp256k1 signatures with libsecp256k1, whose verifier
+		// rejects the malleable high-S form.
+		if err := requireLowS(serializedSignature.Signature, secp256k1.Params().N, "Secp256k1"); err != nil {
+			return false, err
+		}
 		publicKey, err := secp256k1.ParsePubKey(serializedSignature.PubKey)
 		if err != nil {
 			return false, err
@@ -303,6 +308,9 @@ func verifyDigest(serializedSignature *SignaturePubkeyPair, digest []byte) (bool
 		if len(serializedSignature.Signature) != 64 {
 			return false, fmt.Errorf("invalid Secp256r1 signature length: %d", len(serializedSignature.Signature))
 		}
+		if err := requireLowS(serializedSignature.Signature, elliptic.P256().Params().N, "Secp256r1"); err != nil {
+			return false, err
+		}
 		x, y := elliptic.UnmarshalCompressed(elliptic.P256(), serializedSignature.PubKey)
 		if x == nil || y == nil {
 			return false, fmt.Errorf("invalid Secp256r1 public key")
@@ -312,6 +320,14 @@ func verifyDigest(serializedSignature *SignaturePubkeyPair, digest []byte) (bool
 	default:
 		return false, fmt.Errorf("signature scheme %s is not supported", serializedSignature.SignatureScheme)
 	}
+}
+
+func requireLowS(signature []byte, curveOrder *big.Int, scheme string) error {
+	halfOrder := new(big.Int).Rsh(curveOrder, 1)
+	if new(big.Int).SetBytes(signature[32:]).Cmp(halfOrder) > 0 {
+		return fmt.Errorf("non-canonical high-s %s signature", scheme)
+	}
+	return nil
 }
 
 func Ed25519PublicKeyToSuiAddress(pubKey []byte) string {

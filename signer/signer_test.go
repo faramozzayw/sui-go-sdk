@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"math/big"
+	"strings"
 	"testing"
 
 	"github.com/block-vision/sui-go-sdk/constant"
@@ -133,6 +134,60 @@ func TestSecp256r1SignaturesUseLowS(t *testing.T) {
 		}
 		assertLowSecp256r1S(t, parsed.Signature)
 	}
+}
+
+func TestVerifyPersonalMessageRejectsHighSSecpSignatures(t *testing.T) {
+	tests := []struct {
+		name    string
+		keypair signer.Keypair
+		order   *big.Int
+	}{
+		{"Secp256k1", signer.NewSecp256k1Signer(append(make([]byte, 31), 1)), secp256k1.Params().N},
+		{"Secp256r1", signer.NewSecp256r1Signer(append(make([]byte, 31), 1)), elliptic.P256().Params().N},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			const message = "reject high-s signature"
+			signed, err := tt.keypair.SignMessage(base64.StdEncoding.EncodeToString([]byte(message)), constant.PersonalMessageIntentScope)
+			if err != nil {
+				t.Fatalf("SignMessage() error = %v", err)
+			}
+
+			_, verified, err := models.VerifyPersonalMessage(message, signed.Signature)
+			if err != nil || !verified {
+				t.Fatalf("VerifyPersonalMessage() valid signature = (%t, %v), want (true, nil)", verified, err)
+			}
+
+			highS := replaceSignatureS(t, signed.Signature, tt.order)
+			_, verified, err = models.VerifyPersonalMessage(message, highS)
+			if verified {
+				t.Fatal("VerifyPersonalMessage() accepted a high-s signature")
+			}
+			if err == nil || !strings.Contains(err.Error(), "non-canonical high-s") {
+				t.Fatalf("VerifyPersonalMessage() error = %v, want non-canonical high-s error", err)
+			}
+		})
+	}
+}
+
+func replaceSignatureS(t *testing.T, serializedSignature string, curveOrder *big.Int) string {
+	t.Helper()
+	payload, err := base64.StdEncoding.DecodeString(serializedSignature)
+	if err != nil {
+		t.Fatalf("DecodeString() error = %v", err)
+	}
+	if len(payload) < 65 {
+		t.Fatalf("serialized signature length = %d, want at least 65", len(payload))
+	}
+
+	s := new(big.Int).SetBytes(payload[33:65])
+	highS := new(big.Int).Sub(curveOrder, s)
+	if highS.Cmp(s) <= 0 {
+		t.Fatal("original signature is not low-s")
+	}
+	copy(payload[65-len(highS.Bytes()):65], highS.Bytes())
+	return base64.StdEncoding.EncodeToString(payload)
 }
 
 func assertLowSecp256r1S(t *testing.T, signature []byte) {
